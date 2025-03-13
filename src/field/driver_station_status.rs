@@ -2,6 +2,14 @@
 // licensed under the terms of the MIT license which can be found in the
 // root directory of this project.
 
+// The state of the robot.
+#[derive(Clone, Copy, Debug)]
+pub enum RobotState {
+    Auto,
+    Test,
+    Teleop,
+}
+
 // These are the statuses we extract from the field AP.
 pub struct APStatus {
     pub linked: bool,
@@ -20,7 +28,7 @@ pub struct FMSStatus {
 // These are the statuses that the robot sends to the FMS.
 pub struct RobotStatus {
     pub enabled: bool,
-    pub mode: u8,
+    pub mode: RobotState,
     pub estop: bool,
     pub radio_ping: bool,
     pub rio_ping: bool,
