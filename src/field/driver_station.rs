@@ -19,6 +19,8 @@ pub struct DriverStation {
 
     // These are the statuses that we extract from the DS.
     pub ds_status: &'static DSStatus,
+
+    pub alliance_station: AllianceStation,
 }
 
 impl DriverStation {
@@ -29,23 +31,22 @@ impl DriverStation {
         fms_status: FMSStatus,
         robot_status: RobotStatus,
         ds_status: &'static DSStatus,
+        alliance_station: AllianceStation,
     ) -> Self {
         return Self {
             ap_status,
             fms_status,
             robot_status,
             ds_status,
+            alliance_station,
         };
     }
 
     // Encodes the driver station control information into a packet.
-    fn encode_control_packet(
-        &mut self,
-        alliance_station: AllianceStation,
-    ) -> Result<Vec<u8>, Error> {
+    fn encode_control_packet(&mut self) -> Result<Vec<u8>, Error> {
         let mut packet: Vec<u8> = vec![];
 
-        // Packet number, stored big-endian in two bytes
+        // Packet number, stored big-endian in two bytes.
         packet.push((self.ds_status.packet_count >> 8) & 0xff);
         packet.push(self.ds_status.packet_count & 0xff);
 
@@ -58,17 +59,27 @@ impl DriverStation {
             RobotState::Test => 1,
             RobotState::Teleop => 0,
         };
+
         let control: u8 = ((self.robot_status.estop as u8) << 7)
             | ((self.robot_status.enabled as u8) << 2)
             | (mode & 0x03);
+
         packet.push(control);
 
         // Unknown or unused
         packet.push(0x00);
 
         // Driver station number
-        packet.push(alliance_station.to_ds_number());
+        packet.push(self.alliance_station.to_ds_number());
 
         Ok(packet)
+    }
+
+    pub async fn send_control_packet(&mut self) -> Result<(), Error> {
+        let packet = self
+            .encode_control_packet()
+            .expect("[ERROR] Unable to construct control packet.");
+
+        Ok(())
     }
 }
