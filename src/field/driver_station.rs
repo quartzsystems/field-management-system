@@ -3,6 +3,7 @@
 // root directory of this project.
 
 use std::io::Error;
+use std::time::SystemTime;
 
 use crate::field::alliance::*;
 use crate::field::driver_station_status::*;
@@ -18,7 +19,7 @@ pub struct DriverStation {
     pub robot_status: RobotStatus,
 
     // These are the statuses that we extract from the DS.
-    pub ds_status: &'static DSStatus,
+    pub ds_status: DSStatus,
 
     pub alliance_station: AllianceStation,
 }
@@ -30,7 +31,7 @@ impl DriverStation {
         ap_status: &'static APStatus,
         fms_status: FMSStatus,
         robot_status: RobotStatus,
-        ds_status: &'static DSStatus,
+        ds_status: DSStatus,
         alliance_station: AllianceStation,
     ) -> Self {
         return Self {
@@ -40,6 +41,13 @@ impl DriverStation {
             ds_status,
             alliance_station,
         };
+    }
+
+    // Loops to read driver station packets and updates connection status.
+    fn listen_for_packets(&mut self) {
+        self.ds_status.linked = true;
+
+        self.ds_status.last_packet_time = SystemTime::now();
     }
 
     // Encodes the driver station control information into a packet.

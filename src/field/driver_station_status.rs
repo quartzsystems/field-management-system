@@ -2,6 +2,8 @@
 // licensed under the terms of the MIT license which can be found in the
 // root directory of this project.
 
+use std::{net::SocketAddr, time::SystemTime};
+
 // The state of the robot.
 #[derive(Clone, Copy, Debug)]
 pub enum RobotState {
@@ -44,9 +46,9 @@ pub struct RobotStatus {
 pub struct DSStatus {
     pub linked: bool,
     pub missed_packed_count: u16,
-    pub last_packet_time: u16,
+    pub last_packet_time: SystemTime,
     pub packet_count: u8,
-    pub ip_address: &'static str,
+    pub ip_address: SocketAddr,
     pub missed_packet_offset: u16,
     pub computer_battery_percent: u16,
     pub computer_cpu_percent: u16,
