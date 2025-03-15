@@ -2,6 +2,8 @@
 // licensed under the terms of the MIT license which can be found in the
 // root directory of this project.
 
+use chrono::{DateTime, Local};
+
 use std::{net::SocketAddr, time::SystemTime};
 
 // The state of the robot.
@@ -10,6 +12,15 @@ pub enum RobotState {
     Auto,
     Test,
     Teleop,
+}
+
+// Tournament level of the 
+#[derive(Clone, Copy, Debug)]
+pub enum TournamentLevel {
+    Test = 0,
+    Practice = 1,
+    Qualification = 2,
+    Playoff = 3,
 }
 
 // These are the statuses we extract from the field AP.
@@ -25,6 +36,11 @@ pub struct FMSStatus {
     pub auto: bool,
     pub enabled: bool,
     pub estop: bool,
+    pub tournament_level: TournamentLevel,
+    pub match_number: u16,
+    pub play_number: u8,
+    pub current_date: DateTime<Local>,
+    pub remaining_seconds: u16,
 }
 
 // These are the statuses that the robot sends to the FMS.
@@ -52,5 +68,5 @@ pub struct DSStatus {
     pub missed_packet_offset: u16,
     pub computer_battery_percent: u16,
     pub computer_cpu_percent: u16,
-    pub last_log: str,
+    pub last_log: &'static str,
 }
