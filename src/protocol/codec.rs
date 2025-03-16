@@ -2,10 +2,14 @@
 // licensed under the terms of the MIT license which can be found in the
 // root directory of this project.
 
-pub trait Codec {
+use std::io::Error;
+
+pub trait Encoder {
     // Encoder for outgoing packets.
     fn encode(&self) -> Vec<u8>;
+}
 
+pub trait Decoder: Sized {
     // Decoder for incoming packets.
-    fn decode(buffer: &[u8]) -> Result<Self>;
+    fn decode(buffer: &[u8]) -> Result<Self, Error>;
 }

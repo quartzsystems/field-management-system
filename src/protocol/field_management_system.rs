@@ -2,22 +2,123 @@
 // licensed under the terms of the MIT license which can be found in the
 // root directory of this project.
 
-// These are the statuses that are sent from the FMS to the Driver Station.
-pub struct FMSToDS {
-    pub sequence_num: u16,
-    pub comm_version: u8,
+use byteorder::{BigEndian, WriteBytesExt};
+use chrono::prelude::*;
+
+use crate::protocol::codec::Encoder;
+use crate::protocol::common::*;
+
+// Contains control bits
+pub struct Control {
+    e_stop: u8,
+    enabled: u8,
+    mode: Mode,
 }
 
-impl FMSToDS {
-    pub fn init(sequence_num: u16, comm_version: u8) -> FMSToDS {
-        FMSToDS {
+pub struct Date {
+    pub microseconds: u32,
+    pub second: u8,
+    pub minute: u8,
+    pub hour: u8,
+    pub day: u8,
+    pub month: u8,
+    pub year: u8,
+}
 
-        }
+impl Date {
+    pub fn init() -> Self {
+        let local = Utc::now();
+
+        let microseconds = local.naive_utc().and_utc().timestamp_subsec_micros();
+        let second = local.second() as u8;
+        let minute = local.minute() as u8;
+        let hour = local.hour() as u8;
+        let day = local.day() as u8;
+        let month = local.month0() as u8;
+        let year = (local.year() - 1900) as u8;
+
+        return Self {
+            microseconds,
+            second,
+            minute,
+            hour,
+            day,
+            month,
+            year,
+        };
     }
 }
 
-impl Codec for FMSToDS {
+// These are the statuses that are sent from the FMS to the Driver Station.
+pub struct UDPControlPacket {
+    // Packet number, stored big-endian in two bytes.
+    pub sequence_num: u16,
+
+    // Only 0x00 has been observed.
+    pub comm_version: u8,
+
+    // Contains control bits.
+    pub control_byte: Control,
+
+    // Stays at 0x00, not used.
+    pub request_byte: u8,
+
+    // Represents the station the DS connects to.
+    pub alliance_station: AllianceStation,
+
+    // What level of competition this is.
+    pub tournament_level: TournamentLevel,
+
+    // Represents the number of current match.
+    pub match_number: u16,
+
+    // Increments if there’s a replay
+    pub play_number: u8,
+
+    pub date: Date,
+
+    // Time left in current mode.
+    pub remaining_time: u16,
+}
+
+impl UDPControlPacket {
+    pub fn init(
+        sequence_num: u16,
+        control_byte: Control,
+        alliance_station: AllianceStation,
+        tournament_level: TournamentLevel,
+        match_number: u16,
+        play_number: u8,
+        remaining_time: u16,
+    ) -> Self {
+        return Self {
+            sequence_num,
+            comm_version : 0x00,
+            control_byte,
+            request_byte : 0x00,
+            alliance_station,
+            tournament_level,
+            match_number,
+            play_number,
+            date : Date::init(),
+            remaining_time,
+        };
+    }
+}
+
+impl Encoder for UDPControlPacket {
     fn encode(&self) -> Vec<u8> {
         let mut buffer = Vec::new();
+
+        // Packet number, stored big-endian in two bytes.
+        buffer.write_u16::<BigEndian>(self.sequence_num).unwrap();
+
+        // Only 0x00 has been observed.
+        buffer.push(self.comm_version);
+
+        // // Contains control bits.
+        let mut control =self.control_byte.
+
+        return buffer;
     }
 }

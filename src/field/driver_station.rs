@@ -48,7 +48,6 @@ impl DriverStation {
     // Loops to read driver station packets and updates connection status.
     fn listen_for_packets(&mut self) {
         self.ds_status.linked = true;
-
         self.ds_status.last_packet_time = SystemTime::now();
     }
 
