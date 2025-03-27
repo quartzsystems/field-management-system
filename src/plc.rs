@@ -2,8 +2,4 @@
 // licensed under the terms of the MIT license which can be found in the
 // root directory of this project.
 
-mod plc;
-mod field;
-mod protocol;
-
-fn main() {}
+pub mod plc;
