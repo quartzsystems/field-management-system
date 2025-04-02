@@ -2,6 +2,7 @@
 // licensed under the terms of the MIT license which can be found in the
 // root directory of this project.
 
+pub mod common;
 pub mod plc;
 pub mod plc_inputs;
 pub mod plc_outputs;
