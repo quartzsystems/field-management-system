@@ -2,26 +2,55 @@
 // licensed under the terms of the MIT license which can be found in the
 // root directory of this project.
 
-use std::net::Ipv4Addr;
+use std::net::{IpAddr, Ipv4Addr};
+use std::time::Duration;
+
+use s7::client::Client;
+use s7::tcp::{self, Transport};
+use s7::transport::Connection;
 
 use crate::plc::plc_inputs::PLCInputs;
 use crate::plc::plc_outputs::PLCOutputs;
-use crate::protocol::common::{AllianceColor, AllianceStation};
 
 pub struct PLC {
     pub ip_address: Ipv4Addr,
+    pub s7_client: Client<Transport>,
     pub plc_inputs: PLCInputs,
     pub plc_outputs: PLCOutputs,
 }
 
 impl PLC {
     // Initializes a new PLC object.
-    pub fn init(ip_address: Ipv4Addr, plc_inputs: PLCInputs, plc_outputs: PLCOutputs) -> Self {
+    pub fn init(
+        ip_address: Ipv4Addr,
+        s7_client: Client<Transport>,
+        plc_inputs: PLCInputs,
+        plc_outputs: PLCOutputs,
+    ) -> Self {
         return Self {
             ip_address,
+            s7_client,
             plc_inputs,
             plc_outputs,
         };
+    }
+
+    // Connects to the PLC.
+    pub fn connect(&mut self) {
+        let mut options = tcp::Options::new(IpAddr::from(self.ip_address), 0, 1, Connection::PG);
+
+        options.read_timeout = Duration::from_secs(2);
+        options.write_timeout = Duration::from_secs(2);
+
+        let transport = tcp::Transport::connect(options).unwrap();
+        self.s7_client = Client::new(transport).unwrap();
+    }
+
+    // Main loop to read inputs and write outputs to the PLC.
+    pub fn run(&mut self) {
+        loop {
+            self.connect();
+        }
     }
 
     // Sets the specific alliance station's stack light to be ready or not.
@@ -31,16 +60,10 @@ impl PLC {
     pub fn set_alliance_station_estop(&mut self) {}
 
     // Sets the status of the field stack light.
-    pub fn set_field_stack_light(
-        &mut self,
-        field_stack_light_red: bool,
-        field_stack_light_blue: bool,
-        field_stack_light_amber: bool,
-        field_stack_light_green: bool,
-    ) {
-        self.plc_outputs.field_stack_light_red = field_stack_light_red;
-        self.plc_outputs.field_stack_light_blue = field_stack_light_blue;
-        self.plc_outputs.field_stack_light_amber = field_stack_light_amber;
-        self.plc_outputs.field_stack_light_green = field_stack_light_green;
+    pub fn set_field_stack_light(&mut self, red: bool, blue: bool, amber: bool, green: bool) {
+        self.plc_outputs.field_stack_light_red = red;
+        self.plc_outputs.field_stack_light_blue = blue;
+        self.plc_outputs.field_stack_light_amber = amber;
+        self.plc_outputs.field_stack_light_green = green;
     }
 }

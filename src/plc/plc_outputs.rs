@@ -2,8 +2,6 @@
 // licensed under the terms of the MIT license which can be found in the
 // root directory of this project.
 
-use crate::plc::common::StackLight;
-
 pub struct PLCOutputs {
     pub field_stack_light_red: bool,
     pub field_stack_light_blue: bool,

@@ -76,6 +76,7 @@ version = "0.1.0"
 dependencies = [
  "byteorder",
  "chrono",
+ "s7",
 ]
 
 [[package]]
@@ -161,6 +162,15 @@ name = "rustversion"
 version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eded382c5f5f786b989652c49544c4877d9f015cc22e145a5ea8ea66c2921cd2"
+
+[[package]]
+name = "s7"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9af7e99de21ea0d31f503b0bbc4fd23292ff96f0324a9e393679850d33ac881e"
+dependencies = [
+ "byteorder",
+]
 
 [[package]]
 name = "shlex"
