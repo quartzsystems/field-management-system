@@ -3,3 +3,5 @@
 // root directory of this project.
 
 pub mod plc;
+pub mod plc_inputs;
+pub mod plc_outputs;

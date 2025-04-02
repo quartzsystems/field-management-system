@@ -10,6 +10,7 @@ pub enum Mode {
 }
 
 // The possible alliance colors.
+#[derive(PartialEq)]
 pub enum AllianceColor {
     Blue,
     Red,
