@@ -2,6 +2,8 @@
 // licensed under the terms of the MIT license which can be found in the
 // root directory of this project.
 
+use std::io::Error;
+
 use byteorder::{BigEndian, WriteBytesExt};
 use chrono::prelude::*;
 
@@ -15,6 +17,7 @@ pub struct Control {
     mode: Mode,
 }
 
+// Current date and time.
 pub struct Date {
     pub microseconds: u32,
     pub second: u8,
@@ -75,6 +78,7 @@ pub struct UDPControlPacket {
     // Increments if there’s a replay
     pub play_number: u8,
 
+    // Current date and time.
     pub date: Date,
 
     // Time left in current mode.
@@ -93,32 +97,71 @@ impl UDPControlPacket {
     ) -> Self {
         return Self {
             sequence_num,
-            comm_version : 0x00,
+            comm_version: 0x00,
             control_byte,
-            request_byte : 0x00,
+            request_byte: 0x00,
             alliance_station,
             tournament_level,
             match_number,
             play_number,
-            date : Date::init(),
+            date: Date::init(),
             remaining_time,
         };
     }
 }
 
 impl Encoder for UDPControlPacket {
-    fn encode(&self) -> Vec<u8> {
+    fn encode(&self) -> Result<Vec<u8>, Error> {
         let mut buffer = Vec::new();
 
         // Packet number, stored big-endian in two bytes.
         buffer.write_u16::<BigEndian>(self.sequence_num).unwrap();
 
         // Only 0x00 has been observed.
-        buffer.push(self.comm_version);
+        buffer.write_u8(self.comm_version).unwrap();
 
-        // // Contains control bits.
-        let mut control =self.control_byte.
+        // Contains control bits.
+        let mode: u8 = match self.control_byte.mode {
+            Mode::Autonomous => 2,
+            Mode::Test => 1,
+            Mode::TeleOp => 0,
+        };
+        let control: u8 = ((self.control_byte.e_stop as u8) << 7)
+            | ((self.control_byte.enabled as u8) << 7)
+            | (mode & 0b11);
+        buffer.write_u8(control).unwrap();
 
-        return buffer;
+        // Stays at 0x00, not used.
+        buffer.write_u8(self.request_byte).unwrap();
+
+        // Represents the station the DS connects to.
+        buffer
+            .write_u8(self.alliance_station.to_ds_number())
+            .unwrap();
+
+        // What level of competition this is.
+        buffer.write_u8(self.tournament_level as u8).unwrap();
+
+        // Represents the number of current match.
+        buffer.write_u16::<BigEndian>(self.match_number).unwrap();
+
+        // Increments if there’s a replay
+        buffer.write_u8(self.play_number).unwrap();
+
+        // Current date and time.
+        buffer
+            .write_u32::<BigEndian>(self.date.microseconds)
+            .unwrap();
+        buffer.write_u8(self.date.second as u8).unwrap();
+        buffer.write_u8(self.date.minute as u8).unwrap();
+        buffer.write_u8(self.date.hour as u8).unwrap();
+        buffer.write_u8(self.date.day as u8).unwrap();
+        buffer.write_u8(self.date.month as u8).unwrap();
+        buffer.write_u8(self.date.year as u8).unwrap();
+
+        // Time left in current mode.
+        buffer.write_u16::<BigEndian>(self.remaining_time).unwrap();
+
+        return Ok(buffer);
     }
 }

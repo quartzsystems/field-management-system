@@ -6,7 +6,7 @@ use std::io::Error;
 
 pub trait Encoder {
     // Encoder for outgoing packets.
-    fn encode(&self) -> Vec<u8>;
+    fn encode(&self) -> Result<Vec<u8>, Error>;
 }
 
 pub trait Decoder: Sized {

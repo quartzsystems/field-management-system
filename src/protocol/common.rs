@@ -10,13 +10,13 @@ pub enum Mode {
 }
 
 // The possible alliance colors.
-#[derive(PartialEq)]
 pub enum AllianceColor {
     Blue,
     Red,
 }
 
 // The possible tournament levels of the competition.
+#[derive(Copy, Clone)]
 pub enum TournamentLevel {
     Test = 0x00,
     Practice = 0x01,
@@ -27,11 +27,11 @@ pub enum TournamentLevel {
 // The possible alliance colors and alliance station number.
 pub struct AllianceStation {
     pub alliance_color: AllianceColor,
-    pub alliance_station: u8,
+    pub alliance_station: usize,
 }
 
 impl AllianceStation {
-    pub fn init(alliance_color: AllianceColor, alliance_station: u8) -> Self {
+    pub fn init(alliance_color: AllianceColor, alliance_station: usize) -> Self {
         Self {
             alliance_color,
             alliance_station,
@@ -41,7 +41,7 @@ impl AllianceStation {
     pub fn to_ds_number(&self) -> u8 {
         let alliance_station: u8 = ((self.alliance_station - 1) % 3).try_into().unwrap();
 
-        match self.alliance_station {
+        match self.alliance_color {
             AllianceColor::Blue => alliance_station + 3,
             AllianceColor::Red => alliance_station,
         }
