@@ -6,6 +6,7 @@ use std::net::{IpAddr, Ipv4Addr};
 use std::time::Duration;
 
 use s7::client::Client;
+use s7::field::Bool;
 use s7::tcp::{self, Transport};
 use s7::transport::Connection;
 
@@ -43,6 +44,7 @@ impl PLC {
         options.write_timeout = Duration::from_secs(2);
 
         let transport = tcp::Transport::connect(options).unwrap();
+
         self.s7_client = Client::new(transport).unwrap();
     }
 
@@ -51,6 +53,28 @@ impl PLC {
         loop {
             self.connect();
         }
+    }
+
+    pub fn read_inputs(&mut self) {
+        let data_block = 1;
+        let offset = 1;
+
+        let buffer = &mut vec![0u8; Bool::size() as usize];
+
+        self.s7_client
+            .ag_read(data_block, offset as i32, Bool::size(), buffer)
+            .unwrap();
+    }
+
+    pub fn write_outputs(&mut self) {
+        let data_block = 1;
+        let offset = 1;
+
+        let buffer = &mut vec![0u8; Bool::size() as usize];
+
+        self.s7_client
+            .ag_write(data_block, offset, Bool::size(), buffer)
+            .unwrap();
     }
 
     // Sets the specific alliance station's stack light to be ready or not.
